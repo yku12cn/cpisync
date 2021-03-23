@@ -244,6 +244,34 @@ public:
     };
 
     /**
+     * A class that wraps timerStart and timerEnd. Utilizing RAII to help keeping them in pairs.
+     */
+    class TimerWarp{
+
+    public:
+        TimerWarp(SyncStats& stats_, SyncStats::StatID _timerID): stats(stats_), timerID(_timerID){
+            stats.timerStart(timerID);
+        }
+
+        ~TimerWarp(){
+            stats.timerEnd(timerID);
+        }
+
+    private:
+        SyncStats &stats;
+        SyncStats::StatID timerID;
+    };
+
+    /**
+     * A helper function for using the RAII method timer.
+     * To use, put the code you want to time inside a nested block {}.
+     * At the beginning of the nested block, add "auto _handler = localTimer(StatID whichtimer);"
+     */
+    inline TimerWarp localTimer(SyncStats::StatID timerID){
+        return TimerWarp(mySyncStats, timerID);
+    }
+
+    /**
      * An object that collects stats about a sync
      */
     SyncStats mySyncStats;
